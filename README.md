@@ -1,4 +1,4 @@
 finecinnamon
 ============
 
-Java Experiments
+Java Delicatessen
