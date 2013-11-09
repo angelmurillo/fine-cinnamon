@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util" 
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop.xsd         
+		http://www.springframework.org/schema/beans 
+		
+		http://www.springframework.org/schema/beans/spring-beans.xsd         
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd     
+		http://www.springframework.org/schema/jdbc
+        http://www.springframework.org/schema/jdbc/spring-jdbc.xsd    
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util.xsd">
+		
+	<!-- Importar contexto jpa -->
+	<import resource="classpath:META-INF/spring/applicationContext-jpa.xml" />
+	
+	<!-- Carga de propiedades -->
+	<context:property-placeholder location="classpath*:META-INF/spring/*.properties" />
+	
+	<!-- Escaneo del contexto -->
+	<context:component-scan base-package="com.finecinnamon.eventviewer"/>
+	
+	<!-- Base de datos embebida -->
+	<jdbc:embedded-database id="eventDataSource">
+	   <jdbc:script execution="INIT" location="classpath:META-INF/spring/example-bbdd.script"/>
+	</jdbc:embedded-database>
+	
+	<!-- Scaneo de los @Transactional -->
+    <tx:annotation-driven/>
+    
+    <!-- Transaction Manager -->
+    <bean class="org.springframework.orm.jpa.JpaTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="eventDataSource"/>
+        <property name="entityManagerFactory" ref="eventEntityManagerFactory"/>
+    </bean>
+    
+    <!-- Entity Manager -->
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean" id="eventEntityManagerFactory">
+        <property name="packagesToScan" value="com.finecinnamon.eventviewer.domain"/>
+        <property name="dataSource" ref="eventDataSource"/>
+        <property name="jpaPropertyMap" ref="eventJpaPropertyMap"/>
+        <property name="jpaVendorAdapter" ref="eventtHibernateVendor"></property>
+    </bean>
+    
+    <!-- Mapa de propiedades JPA -->
+    <util:map id="eventJpaPropertyMap">
+        <entry key="hibernate.hbm2ddl.auto" value="${eventDataSource.hbm2ddl.auto}"/>
+        <entry key="hibernate.dialect" value="${eventDataSource.dialect}"/>
+        <entry key="hibernate.ejb.naming_strategy" value="org.hibernate.cfg.ImprovedNamingStrategy"/>
+        <!-- Para modelo de desa -->
+<!--         <entry key="hibernate.default_schema" value="${eventDataSource.default_schema}"/> -->
+    </util:map>
+    
+    <!-- Configuracion vendor adapter -->
+    <bean id="eventtHibernateVendor" class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+        <property name="showSql" value="${eventDataSource.showSql}"/>
+    </bean>
+</beans>
